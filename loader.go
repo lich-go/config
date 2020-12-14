@@ -12,12 +12,12 @@ var defaultName = "config" // 默认配置文件名称
 var defaultExt = ".ini"    // 配置文件扩展名
 
 type Config struct {
-	Fetch           *goconfig.ConfigFile
-	Path            string
-	Filename        string
-	Ext             string
-	DefaultCallback func()
-	ErrorCallback   func()
+	Fetch                       *goconfig.ConfigFile
+	Path                        string
+	Filename                    string
+	Ext                         string
+	DefaultFileNotFoundCallback func()
+	ErrorCallback               func(err error)
 }
 
 // LoadConfigFile 加载配置文件
@@ -37,7 +37,7 @@ func (zs *Config) LoadConfigFile(f ...func()) {
 	dir, err := os.Getwd()
 	if err != nil {
 		log.Println(err)
-		zs.ErrorCallback()
+		zs.ErrorCallback(err)
 	}
 
 	dir = strings.Replace(dir, "\\", "/", -1) + "/" + zs.Path + "/"
@@ -46,7 +46,7 @@ func (zs *Config) LoadConfigFile(f ...func()) {
 	defaultFilepath := dir + defaultName + zs.Ext // 构造默认配置文件
 	_, err = os.Stat(defaultFilepath)             // 判断是否存在自定义配置文件
 	if err != nil {
-		zs.DefaultCallback()
+		zs.DefaultFileNotFoundCallback()
 	}
 
 	// 使用自定义配置文件
@@ -66,7 +66,7 @@ func (zs *Config) LoadConfigFile(f ...func()) {
 	// 配置文件加载失败
 	if err != nil {
 		log.Println(err)
-		zs.ErrorCallback()
+		zs.ErrorCallback(err)
 	} else {
 		zs.Fetch = file
 	}
